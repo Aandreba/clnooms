@@ -1,4 +1,4 @@
-# Half precision floating point (f16)
+# Half-precision floating point (f16)
 
 A 16-bit floating point type; specifically, the ARM alternative half-precision.
 It is only available for aarch64 targets & it differs from it's IEEE variant by doing away with the special case for an exponent value of 31, disallawing infinities & NaNs.
