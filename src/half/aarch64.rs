@@ -3,6 +3,7 @@ use std::{arch::asm, ops::{Add, Sub, Mul, Div, Neg, AddAssign, SubAssign, MulAss
 use super::f16;
 
 impl f16 {
+    /// Computes the value's absolute
     pub fn abs (self) -> f16 {
         unsafe {
             let result : u16;
@@ -11,6 +12,7 @@ impl f16 {
         }
     }
 
+    /// Computes the value's square root
     pub fn sqrt (self) -> f16 {
         unsafe {
             let result : u16;
@@ -19,6 +21,7 @@ impl f16 {
         }
     }
 
+    /// Returns the largest integer less than or equal to a number
     pub fn floor (self) -> f16 {
         unsafe {
             let result: u16;
@@ -27,6 +30,7 @@ impl f16 {
         }
     }
 
+    /// Returns the smallest integer less than or equal to a number
     pub fn ceil (self) -> f16 {
         unsafe {
             let result: u16;
@@ -35,6 +39,7 @@ impl f16 {
         }
     }
 
+    /// Returns the nearest integer to a number. Round half-way cases away from 0.0
     pub fn round (self) -> f16 {
         unsafe {
             let result: u16;
@@ -42,7 +47,8 @@ impl f16 {
             Self(result)
         }
     }
-
+    
+    /// Returns the integer part of a number
     pub fn trunc (self) -> f16 {
         unsafe {
             let result: u16;
@@ -51,7 +57,7 @@ impl f16 {
         }
     }
 
-    /// First multiplies self x d1, then adds d2 to that result, returning the result in d0
+    /// First multiplies self x d1, then adds d2 to that result, returning the result
     pub fn mul_add (self, d1: f16, d2: f16) -> f16 {
         unsafe {
             let d0 : u16;
@@ -60,14 +66,7 @@ impl f16 {
         }
     }
 
-    /// First multiplies self x d1, then adds d2 to that result, returning the result in d0
-    pub fn mul_add_into (self, d1: f16, d2: f16, d0: &mut f16) {
-        unsafe {
-            asm!("fmadd {0:h}, {1:h}, {2:h}, {3:h}", out(vreg) d0.0, in(vreg) self.0, in(vreg) d1.0, in(vreg) d2.0);
-        }
-    }
-
-    /// First multiplies self x d1, negates the product, then adds d2 to that result, returning the result in d0
+    /// First multiplies self x d1, negates the product, then adds d2 to that result, returning the result
     pub fn mul_sub (self, d1: f16, d2: f16) -> f16 {
         unsafe {
             let d0 : u16;
@@ -75,15 +74,13 @@ impl f16 {
             Self(d0)
         }
     }
-
-    // TODO div_euclid & rem_euclid
 }
 
 // ARITHMETIC
 impl Add for f16 {
     type Output = Self;
 
-    fn add(self, rhs: Self) -> Self {
+    fn add (self, rhs: Self) -> Self {
         unsafe {
             let result : u16;
             asm!("fadd {0:h}, {1:h}, {2:h}", out(vreg) result, in(vreg) self.0, in(vreg) rhs.0);

@@ -165,12 +165,22 @@ impl Neg for f80 {
 
 // OTHERS
 impl f80 {
+    /// Computes the absolute value of self. Returns NAN if the number is NAN
     single_call!(abs, "fabs");
+
+    /// Computes the value's square root
     single_call!(sqrt, "fsqrt");
+
+    /// Computes the value's sine
     single_call!(sin, "fsin");
+
+    /// Computes the value's cosine
     single_call!(cos, "fcos");
+
+    /// Returns the nearest integer to a number. Round half-way cases away from 0.0
     single_call!(round, "frndint");
 
+    /// Computes the value's sine & cosine simultaneously
     pub fn sin_cos (self) -> (f80, f80) {
         unsafe {
             let ptr = addr_of!(self.0);
@@ -191,6 +201,7 @@ impl f80 {
         }
     }
 
+    /// Computes the value's tangent
     pub fn tan (self) -> f80 {
         unsafe {
             let ptr = addr_of!(self.0);
@@ -209,6 +220,7 @@ impl f80 {
         }
     }
 
+    /// Computes the value's arc tangent
     pub fn atan (self) -> f80 { 
         unsafe {
             let ptr = addr_of!(self.0);
@@ -227,6 +239,7 @@ impl f80 {
         }
     }
 
+    /// Computes the tangent of `self / rhs`
     pub fn atan2 (self, rhs: f80) -> f80 {
         unsafe {
             let ptr1 = addr_of!(self.0);
