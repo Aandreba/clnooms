@@ -1,13 +1,8 @@
-use std::{arch::asm, ops::{Add, Sub, Mul, Div, Neg}, fmt::{Debug}, cmp::Ordering};
+use std::{arch::asm, ops::{Add, Sub, Mul, Div, Neg, AddAssign, SubAssign, MulAssign, DivAssign}, cmp::Ordering};
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct f16 (u16);
+use super::f16;
 
 impl f16 {
-    pub fn of_bits (bits: u16) -> f16 {
-        f16(bits)
-    }
-
     pub fn abs (self) -> f16 {
         unsafe {
             let result : u16;
@@ -48,8 +43,16 @@ impl f16 {
         }
     }
 
+    pub fn trunc (self) -> f16 {
+        unsafe {
+            let result: u16;
+            asm!("frintx {0:h}, {1:h}", out(vreg) result, in(vreg) self.0);
+            Self(result)
+        }
+    }
+
     /// First multiplies self x d1, then adds d2 to that result, returning the result in d0
-    pub fn madd (self, d1: f16, d2: f16) -> f16 {
+    pub fn mul_add (self, d1: f16, d2: f16) -> f16 {
         unsafe {
             let d0 : u16;
             asm!("fmadd {0:h}, {1:h}, {2:h}, {3:h}", out(vreg) d0, in(vreg) self.0, in(vreg) d1.0, in(vreg) d2.0);
@@ -57,14 +60,23 @@ impl f16 {
         }
     }
 
+    /// First multiplies self x d1, then adds d2 to that result, returning the result in d0
+    pub fn mul_add_into (self, d1: f16, d2: f16, d0: &mut f16) {
+        unsafe {
+            asm!("fmadd {0:h}, {1:h}, {2:h}, {3:h}", out(vreg) d0.0, in(vreg) self.0, in(vreg) d1.0, in(vreg) d2.0);
+        }
+    }
+
     /// First multiplies self x d1, negates the product, then adds d2 to that result, returning the result in d0
-    pub fn msub (self, d1: f16, d2: f16) -> f16 {
+    pub fn mul_sub (self, d1: f16, d2: f16) -> f16 {
         unsafe {
             let d0 : u16;
             asm!("fmsub {0:h}, {1:h}, {2:h}, {3:h}", out(vreg) d0, in(vreg) self.0, in(vreg) d1.0, in(vreg) d2.0);
             Self(d0)
         }
     }
+
+    // TODO div_euclid & rem_euclid
 }
 
 // ARITHMETIC
@@ -80,6 +92,12 @@ impl Add for f16 {
     }
 }
 
+impl AddAssign for f16 {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 = (*self + rhs).0
+    }
+}
+
 impl Sub for f16 {
     type Output = Self;
 
@@ -89,6 +107,12 @@ impl Sub for f16 {
             asm!("fsub {0:h}, {1:h}, {2:h}", out(vreg) result, in(vreg) self.0, in(vreg) rhs.0);
             Self(result)
         }
+    }
+}
+
+impl SubAssign for f16 {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.0 = (*self - rhs).0
     }
 }
 
@@ -104,6 +128,12 @@ impl Mul for f16 {
     }
 }
 
+impl MulAssign for f16 {
+    fn mul_assign(&mut self, rhs: Self) {
+        self.0 = (*self * rhs).0
+    }
+}
+
 impl Div for f16 {
     type Output = Self;
 
@@ -113,6 +143,12 @@ impl Div for f16 {
             asm!("fdiv {0:h}, {1:h}, {2:h}", out(vreg) result, in(vreg) self.0, in(vreg) rhs.0);
             Self(result)
         }
+    }
+}
+
+impl DivAssign for f16 {
+    fn div_assign(&mut self, rhs: Self) {
+        self.0 = (*self / rhs).0
     }
 }
 
@@ -128,6 +164,7 @@ impl Neg for f16 {
     }
 }
 
+// COMPARE
 impl PartialOrd for f16 {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
@@ -261,7 +298,7 @@ impl Into<u16> for f16 {
     fn into(self) -> u16 {
         unsafe {
             let result: u16;
-            asm!("fcvtau {0}, {1:h}", out(reg) result, in(vreg) self.0);
+            asm!("fcvtzu {0}, {1:h}", out(reg) result, in(vreg) self.0);
             result
         }
     }
@@ -271,7 +308,7 @@ impl Into<i32> for f16 {
     fn into(self) -> i32 {
         unsafe {
             let result: i32;
-            asm!("fcvtas {0}, {1:h}", out(reg) result, in(vreg) self.0);
+            asm!("fcvtzs {0}, {1:h}", out(reg) result, in(vreg) self.0);
             result
         }
     }
@@ -294,17 +331,5 @@ impl Into<f64> for f16 {
             asm!("fcvt {0:d}, {1:h}", out(vreg) result, in(vreg) self.0);
             result
         }
-    }
-}
-
-// DISPLAY
-impl Debug for f16 {
-    fn fmt (&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let clone = *self;
-
-        let int : u16 = clone.into();
-        let frac : u16 = ((clone - int.into()) * f16::from(1000)).ceil().into();
-
-        f.write_fmt(format_args!("{}.{}", int, frac))
     }
 }

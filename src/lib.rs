@@ -1,10 +1,17 @@
 #![feature(asm_const)]
 macro_rules! flat_mod {
-    ($i:ident) => {
-        mod $i;
-        pub use $i::*;
+    ($($i:ident),*) => {
+        $(
+            mod $i;
+            pub use $i::*;
+        )*
     };
 }
 
-#[cfg(target_arch = "aarch64")]
-flat_mod!(aarch64);
+mod utils;
+
+#[doc = include_str!("../docs/half.md")]
+pub mod half;
+
+#[doc = include_str!("../docs/extended.md")]
+pub mod extended;

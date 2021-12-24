@@ -1,8 +1,6 @@
-use std::f32::consts::PI;
-
-use half::f16;
+use clnooms::extended::f80;
 
 fn main() {
-    let alpha = f16::from(PI);
-    println!("{:?} {:?}", alpha, alpha.round())
+    let alpha = f80::from(1.);
+    println!("{} {:?}", alpha, alpha.atan())
 }
