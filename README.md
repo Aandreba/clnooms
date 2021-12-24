@@ -1,4 +1,7 @@
 # Clnooms
+[![Crate](https://img.shields.io/crates/v/clnooms.svg)](https://crates.io/crates/clnooms)
+[![API](https://docs.rs/clnooms/badge.svg)](https://docs.rs/clnooms)
+
 Assembly-level implementation of various interesting data types on Rust
 
 # Table of Contents
@@ -151,7 +154,7 @@ See the <a href="https://en.wikipedia.org/wiki/Extended_precision">Wikipedia art
 - [ ] 16-bit unsigned integer
 - [ ] 16-bit signed integer
 - [ ] 32-bit unsigned integer
-- [] 32-bit signed integer
+- [ ] 32-bit signed integer
 - [ ] 64-bit unsigned integer
 - [ ] 64-bit signed integer
 - [ ] 128-bit unsigned integer
