@@ -1,4 +1,5 @@
-#![feature(asm_const)]
+#![feature(asm_const, div_duration)]
+
 macro_rules! flat_mod {
     ($($i:ident),*) => {
         $(

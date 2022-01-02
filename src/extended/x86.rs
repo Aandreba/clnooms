@@ -10,17 +10,17 @@ macro_rules! priv_single_call {
         fn $f (self) -> f80 {
             unsafe {
                 let ptr = addr_of!(self.0);
-                let mut out = Self::allocate();
+                let out = &mut [0u8;10] as *mut [u8;10];
 
                 asm!(
                     "fld tbyte ptr [{0}]",
                     $n,
                     "fstp tbyte ptr [{1}]",
                     in(reg) ptr,
-                    out(reg) out
+                    in(reg) out
                 );
 
-                f80(out.read())
+                f80(*out)
             }
         }
     };
@@ -31,33 +31,28 @@ macro_rules! single_call {
         pub fn $f (self) -> f80 {
             unsafe {
                 let ptr = addr_of!(self.0);
-                let mut out = Self::allocate();
+                let out = &mut [0u8;10] as *mut [u8;10];
 
                 asm!(
                     "fld tbyte ptr [{0}]",
                     $n,
                     "fstp tbyte ptr [{1}]",
                     in(reg) ptr,
-                    out(reg) out
+                    in(reg) out
                 );
 
-                f80(out.read())
+                f80(*out)
             }
         }
     };
 }
 
 #[derive(Clone, Copy)]
-pub struct f80 ([u8;10]);
+pub struct f80 (pub [u8;10]);
 
 impl f80 {
     pub fn of_bits (bits: [u8;10]) -> f80 {
         f80(bits)
-    }
-
-    const LAYPUT : Layout = Layout::new::<[u8;10]>();
-    unsafe fn allocate () -> *mut [u8;10] {
-        alloc(Self::LAYPUT) as *mut [u8;10]
     }
 }
 
@@ -65,11 +60,12 @@ impl f80 {
 impl Add for f80 {
     type Output = f80;
 
+    #[inline(always)]
     fn add (self, rhs: Self) -> Self::Output {
         unsafe {
             let ptr1 = addr_of!(self.0);
             let ptr2 = addr_of!(rhs.0);
-            let mut out = Self::allocate();
+            let out = &mut [0u8;10] as *mut [u8;10];
 
             asm!(
                 "fld tbyte ptr [{0}]",
@@ -78,10 +74,10 @@ impl Add for f80 {
                 "fstp tbyte ptr [{2}]",
                 in(reg) ptr1,
                 in(reg) ptr2,
-                out(reg) out
+                in(reg) out
             );
 
-            f80(out.read())
+            f80(*out)
         }
     }
 }
@@ -93,7 +89,7 @@ impl Sub for f80 {
         unsafe {
             let ptr1 = addr_of!(self.0);
             let ptr2 = addr_of!(rhs.0);
-            let mut out = Self::allocate();
+            let mut out = &[0u8;10] as *const [u8;10];
 
             asm!(
                 "fld tbyte ptr [{0}]",
@@ -117,7 +113,7 @@ impl Mul for f80 {
         unsafe {
             let ptr1 = addr_of!(self.0);
             let ptr2 = addr_of!(rhs.0);
-            let mut out = Self::allocate();
+            let mut out = &[0u8;10] as *const [u8;10];
 
             asm!(
                 "fld tbyte ptr [{0}]",
@@ -141,7 +137,7 @@ impl Div for f80 {
         unsafe {
             let ptr1 = addr_of!(self.0);
             let ptr2 = addr_of!(rhs.0);
-            let mut out = Self::allocate();
+            let mut out = &[0u8;10] as *const [u8;10];
 
             asm!(
                 "fld tbyte ptr [{0}]",
@@ -184,8 +180,8 @@ impl f80 {
     pub fn sin_cos (self) -> (f80, f80) {
         unsafe {
             let ptr = addr_of!(self.0);
-            let mut sin = Self::allocate();
-            let mut cos = Self::allocate();
+            let mut sin = &[0u8;10] as *const [u8;10];
+            let mut cos = &[0u8;10] as *const [u8;10];
 
             asm!(
                 "fld tbyte ptr [{0}]",
@@ -205,7 +201,7 @@ impl f80 {
     pub fn tan (self) -> f80 {
         unsafe {
             let ptr = addr_of!(self.0);
-            let mut out = Self::allocate();
+            let mut out = &[0u8;10] as *const [u8;10];
 
             asm!(
                 "fld tbyte ptr [{0}]",
@@ -224,7 +220,7 @@ impl f80 {
     pub fn atan (self) -> f80 { 
         unsafe {
             let ptr = addr_of!(self.0);
-            let mut out = Self::allocate();
+            let mut out = &[0u8;10] as *const [u8;10];
 
             asm!(
                 "fld tbyte ptr [{0}]",
@@ -244,7 +240,7 @@ impl f80 {
         unsafe {
             let ptr1 = addr_of!(self.0);
             let ptr2 = addr_of!(rhs.0);
-            let mut out = Self::allocate();
+            let mut out = &[0u8;10] as *const [u8;10];
 
             asm!(
                 "fld tbyte ptr [{0}]",
@@ -265,17 +261,17 @@ impl f80 {
 impl From<f64> for f80 {
     fn from(x: f64) -> Self {
         unsafe {
-            let ptr = addr_of!(x);
-            let mut out = Self::allocate();
+            let ptr = &x as *const f64;
+            let out = &mut [0u8;10] as *mut [u8;10];
 
             asm!(
                 "fld qword ptr [{0}]",
                 "fstp tbyte ptr [{1}]",
                 in(reg) ptr,
-                out(reg) out
+                in(reg) out
             );
 
-            f80(out.read())
+            f80(*out)
         }
     }
 }
@@ -284,7 +280,7 @@ impl From<f32> for f80 {
     fn from(x: f32) -> Self {
         unsafe {
             let ptr = addr_of!(x);
-            let mut out = Self::allocate();
+            let mut out = &[0u8;10] as *const [u8;10];
 
             asm!(
                 "fld dword ptr [{0}]",
