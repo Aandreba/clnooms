@@ -80,6 +80,7 @@ impl f16 {
 impl Add for f16 {
     type Output = Self;
 
+    #[inline(always)]
     fn add (self, rhs: Self) -> Self {
         unsafe {
             let result : u16;
